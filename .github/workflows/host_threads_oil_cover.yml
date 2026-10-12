@@ -1,0 +1,26 @@
+name: Host Threads Oil Cover
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/host_threads_oil_cover.yml'
+permissions:
+  contents: write
+jobs:
+  host:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download approved cover
+        run: |
+          mkdir -p social/20261013
+          curl -L --fail --retry 4 'https://d2jqrm6oza8nb6.cloudfront.net/datasets/eaed2bdc-afdb-4012-91bf-bc2eb6193657.png?_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJrZXlIYXNoIjoiZDBkZmVhYzBiNjk3ZGQ1ZCIsImJ1Y2tldCI6InJ1bndheS1kYXRhc2V0cyIsInN0YWdlIjoicHJvZCIsImV4cCI6MTc5MTk3Mzk1Mn0.dQQLlOq827UtkCOVLkbNsbOysLzScAKV-rTp97prgfE' -o social/20261013/oil_market_cover.png
+          test -s social/20261013/oil_market_cover.png
+      - name: Commit hosted cover
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add social/20261013/oil_market_cover.png
+          git diff --cached --quiet && exit 0
+          git commit -m "Host Threads oil market cover"
+          git push
