@@ -1,0 +1,19 @@
+name: Package V3 Review Reel
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/package_v3_reel.yml'
+permissions:
+  contents: read
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: alpha-market-research-reel-v3
+          path: reels/v3/ALPHA_MARKET_RESEARCH_REEL_V3.mp4
+          retention-days: 7
+          if-no-files-found: error
