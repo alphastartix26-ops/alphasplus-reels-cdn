@@ -1,0 +1,37 @@
+name: Newstory cloud render diagnostic
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'cloud_render/probe.py'
+      - 'cloud_render/manifest.json'
+      - '.github/workflows/newstory-cloud-render-probe.yml'
+permissions:
+  contents: write
+concurrency:
+  group: newstory-cloud-render-diagnostic
+  cancel-in-progress: false
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      PIP_NO_CACHE_DIR: '1'
+      HF_HOME: ${{ runner.temp }}/newstory-models
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install tools from standard package repositories
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq ffmpeg fonts-noto-cjk
+          python -m pip install --no-cache-dir 'edge-tts>=7,<8' 'faster-whisper>=1.2,<2' 'pillow>=11,<13' 'numpy>=2,<3'
+      - name: Generate diagnostic and independently transcribe final audio
+        run: python cloud_render/probe.py
+      - name: Keep non-sensitive diagnostic evidence in a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "newstory-cloud-probe-${GITHUB_RUN_ID}" cloud_render_output/probe.mp4 cloud_render_output/asr.json cloud_render_output/BUILD_VERIFICATION.json --title 'NEWSTORY infrastructure diagnostic — never published to SNS' --notes 'Non-production diagnostic only. No SNS credentials or private content. No Actions artifacts or persistent cache.'
